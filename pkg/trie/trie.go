@@ -21,15 +21,19 @@ type Trie struct {
 	LastCommitTimestamp uint64 `json:"lastCommitTimestamp"`
 }
 
-func (t *Trie) Add(name string, isDir bool) error {
+func (t *Trie) Add(path string, isDir bool) error {
 	if t.Root == nil {
 		return fmt.Errorf("trie is not initialized")
 	}
 
-	currNode := t.Root
-	splitNames := strings.Split(name, PATH_SPLITTER)
+	if path == TRIE_BACKUP_PATH {
+		return nil
+	}
 
-	for i, n := range splitNames {
+	currNode := t.Root
+	splitPath := strings.Split(path, PATH_SPLITTER)
+
+	for i, n := range splitPath {
 		child, ok := currNode.Children[n]
 		if !ok {
 			tNode := TrieNode{
@@ -38,7 +42,7 @@ func (t *Trie) Add(name string, isDir bool) error {
 				Children: make(map[string]*TrieNode),
 			}
 
-			if i == len(splitNames)-1 {
+			if i == len(splitPath)-1 {
 				tNode.Dir = isDir
 			}
 
@@ -87,7 +91,7 @@ func (t *Trie) Compare(logChanges bool) {
 					log.Printf("Modified: %s", path)
 				}
 			}
-		} else if logChanges {
+		} else if logChanges && path != TRIE_BACKUP_PATH {
 			log.Printf("Added: %s", path)
 		}
 
